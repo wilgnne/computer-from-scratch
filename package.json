@@ -2,6 +2,9 @@
   "name": "computer-from-scratch",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "lint": "eslint ."
+  },
   "workspaces": {
     "packages": [
       "packages/*"
@@ -9,5 +12,10 @@
   },
   "repository": "git@github.com:wilgnne/computer-from-scratch.git",
   "author": "Wilgnne Khawan <wilgnne.kba@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@computer-from-scratch/eslint-config": "*",
+    "eslint": "^8.13.0",
+    "typescript": "^4.6.3"
+  }
 }
