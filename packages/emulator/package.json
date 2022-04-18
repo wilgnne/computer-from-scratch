@@ -1,0 +1,14 @@
+{
+  "name": "@computer-from-scratch/emulator",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --build",
+    "watch": "tsc --watch --preserveWatchOutput"
+  },
+  "dependencies": {
+    "@computer-from-scratch/common": "*"
+  }
+}

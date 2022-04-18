@@ -18,7 +18,11 @@ module.exports = {
   rules: {
     "prettier/prettier": "error",
     "react/jsx-props-no-spreading": "off",
+    "import/extensions": "off",
+    "import/prefer-default-export": "off",
     "no-use-before-define": "off",
+    "no-bitwise": "off",
+    "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
   },
   overrides: [
     {
@@ -34,5 +38,12 @@ module.exports = {
       },
     },
   ],
-  ignorePatterns: ["**/node_modules/**", "**/*.d.ts"],
+  settings: {
+    "import/resolver": {
+      node: {
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
+      },
+    },
+  },
+  ignorePatterns: ["**/node_modules/**", "**/*.d.ts", "**/dist/**"],
 };

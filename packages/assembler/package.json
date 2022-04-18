@@ -1,0 +1,17 @@
+{
+  "name": "@computer-from-scratch/assembler",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --build",
+    "watch": "tsc --watch --preserveWatchOutput"
+  },
+  "dependencies": {
+    "@computer-from-scratch/common": "*"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.4.1"
+  }
+}
