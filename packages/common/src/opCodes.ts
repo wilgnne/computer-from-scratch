@@ -1,78 +1,190 @@
+type RealInstruction =
+  | "HLT"
+  | "MOV"
+  | "PUSH"
+  | "PUSH"
+  | "POP"
+  | "JMP"
+  | "SHL"
+  | "SHR"
+  | "NOT"
+  | "AND"
+  | "OR"
+  | "XOR"
+  | "ADD"
+  | "SUB";
+
+export type Instruction = "DB" | RealInstruction;
+
+const instruction: Record<RealInstruction, number> = {
+  HLT: 0b0000,
+  MOV: 0b0001,
+  PUSH: 0b0010,
+  POP: 0b0011,
+  JMP: 0b0100,
+
+  SHL: 0b0110,
+  SHR: 0b0111,
+  NOT: 0b1000,
+  AND: 0b1001,
+  OR: 0b1010,
+  XOR: 0b1011,
+  ADD: 0b1100,
+  SUB: 0b1101,
+};
+
+const addressingTypes = {
+  number: 0b00,
+  address: 0b01,
+  register: 0b10,
+  regaddress: 0b11,
+};
+
 const OpCodes = {
-  NONE: 0,
-  MOV_REG_TO_REG: 1,
-  MOV_ADDRESS_TO_REG: 2,
-  MOV_REGADDRESS_TO_REG: 3,
-  MOV_REG_TO_ADDRESS: 4,
-  MOV_REG_TO_REGADDRESS: 5,
-  MOV_NUMBER_TO_REG: 6,
-  MOV_NUMBER_TO_ADDRESS: 7,
-  MOV_NUMBER_TO_REGADDRESS: 8,
-  ADD_REG_TO_REG: 10,
-  ADD_REGADDRESS_TO_REG: 11,
-  ADD_ADDRESS_TO_REG: 12,
-  ADD_NUMBER_TO_REG: 13,
-  SUB_REG_FROM_REG: 14,
-  SUB_REGADDRESS_FROM_REG: 15,
-  SUB_ADDRESS_FROM_REG: 16,
-  SUB_NUMBER_FROM_REG: 17,
-  INC_REG: 18,
-  DEC_REG: 19,
-  CMP_REG_WITH_REG: 20,
-  CMP_REGADDRESS_WITH_REG: 21,
-  CMP_ADDRESS_WITH_REG: 22,
-  CMP_NUMBER_WITH_REG: 23,
-  JMP_REGADDRESS: 30,
-  JMP_ADDRESS: 31,
-  JC_REGADDRESS: 32,
-  JC_ADDRESS: 33,
-  JNC_REGADDRESS: 34,
-  JNC_ADDRESS: 35,
-  JZ_REGADDRESS: 36,
-  JZ_ADDRESS: 37,
-  JNZ_REGADDRESS: 38,
-  JNZ_ADDRESS: 39,
-  JA_REGADDRESS: 40,
-  JA_ADDRESS: 41,
-  JNA_REGADDRESS: 42,
-  JNA_ADDRESS: 43,
-  PUSH_REG: 50,
-  PUSH_REGADDRESS: 51,
-  PUSH_ADDRESS: 52,
-  PUSH_NUMBER: 53,
-  POP_REG: 54,
-  CALL_REGADDRESS: 55,
-  CALL_ADDRESS: 56,
-  RET: 57,
-  MUL_REG: 60,
-  MUL_REGADDRESS: 61,
-  MUL_ADDRESS: 62,
-  MUL_NUMBER: 63,
-  DIV_REG: 64,
-  DIV_REGADDRESS: 65,
-  DIV_ADDRESS: 66,
-  DIV_NUMBER: 67,
-  AND_REG_WITH_REG: 70,
-  AND_REGADDRESS_WITH_REG: 71,
-  AND_ADDRESS_WITH_REG: 72,
-  AND_NUMBER_WITH_REG: 73,
-  OR_REG_WITH_REG: 74,
-  OR_REGADDRESS_WITH_REG: 75,
-  OR_ADDRESS_WITH_REG: 76,
-  OR_NUMBER_WITH_REG: 77,
-  XOR_REG_WITH_REG: 78,
-  XOR_REGADDRESS_WITH_REG: 79,
-  XOR_ADDRESS_WITH_REG: 80,
-  XOR_NUMBER_WITH_REG: 81,
-  NOT_REG: 82,
-  SHL_REG_WITH_REG: 90,
-  SHL_REGADDRESS_WITH_REG: 91,
-  SHL_ADDRESS_WITH_REG: 92,
-  SHL_NUMBER_WITH_REG: 93,
-  SHR_REG_WITH_REG: 94,
-  SHR_REGADDRESS_WITH_REG: 95,
-  SHR_ADDRESS_WITH_REG: 96,
-  SHR_NUMBER_WITH_REG: 97,
+  HLT:
+    (instruction.HLT << 4) |
+    (addressingTypes.number << 2) |
+    addressingTypes.number,
+  MOV_REG_TO_REG:
+    (instruction.MOV << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.register,
+  MOV_ADDRESS_TO_REG:
+    (instruction.MOV << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.address,
+  MOV_REGADDRESS_TO_REG:
+    (instruction.MOV << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.regaddress,
+  MOV_NUMBER_TO_REG:
+    (instruction.MOV << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.number,
+  MOV_REG_TO_ADDRESS:
+    (instruction.MOV << 4) |
+    (addressingTypes.address << 2) |
+    addressingTypes.register,
+  MOV_NUMBER_TO_ADDRESS:
+    (instruction.MOV << 4) |
+    (addressingTypes.address << 2) |
+    addressingTypes.number,
+  MOV_REG_TO_REGADDRESS:
+    (instruction.MOV << 4) |
+    (addressingTypes.regaddress << 2) |
+    addressingTypes.register,
+  MOV_NUMBER_TO_REGADDRESS:
+    (instruction.MOV << 4) |
+    (addressingTypes.regaddress << 2) |
+    addressingTypes.number,
+
+  PUSH_REG: (instruction.PUSH << 4) | (addressingTypes.register << 2),
+  PUSH_REGADDRESS: (instruction.PUSH << 4) | (addressingTypes.regaddress << 2),
+  PUSH_ADDRESS: (instruction.PUSH << 4) | (addressingTypes.address << 2),
+  PUSH_NUMBER: (instruction.PUSH << 4) | (addressingTypes.number << 2),
+  POP_REG: (instruction.POP << 4) | (addressingTypes.register << 2),
+
+  JMP_REGADDRESS_FLAG_NUMBER: 0b0100_00_11,
+  JMP_ADDRESS_FLAG_NUMBER: 0b0100_00_01,
+  JMP_REGADDRESS_FLAG_ADDRESS: 0b0100_01_11,
+  JMP_ADDRESS_FLAG_ADDRESS: 0b0100_01_01,
+  JMP_REGADDRESS_FLAG_REG: 0b0100_10_11,
+  JMP_ADDRESS_FLAG_REG: 0b0100_10_01,
+  JMP_REGADDRESS_FLAG_REGADDRESS: 0b0100_11_11,
+  JMP_ADDRESS_FLAG_REGADDRESS: 0b0100_11_01,
+
+  SHL_REG_WITH_REG:
+    (instruction.SHL << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.register,
+  SHL_REGADDRESS_WITH_REG:
+    (instruction.SHL << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.regaddress,
+  SHL_ADDRESS_WITH_REG:
+    (instruction.SHL << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.address,
+  SHL_NUMBER_WITH_REG:
+    (instruction.SHL << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.number,
+  SHR_REG_WITH_REG:
+    (instruction.SHR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.register,
+  SHR_REGADDRESS_WITH_REG:
+    (instruction.SHR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.regaddress,
+  SHR_ADDRESS_WITH_REG:
+    (instruction.SHR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.address,
+  SHR_NUMBER_WITH_REG:
+    (instruction.SHR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.number,
+
+  NOT_REG: (instruction.NOT << 4) | (addressingTypes.register << 2),
+  AND_REG_WITH_REG:
+    (instruction.AND << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.register,
+  AND_REGADDRESS_WITH_REG:
+    (instruction.AND << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.regaddress,
+  AND_ADDRESS_WITH_REG:
+    (instruction.AND << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.address,
+  AND_NUMBER_WITH_REG:
+    (instruction.AND << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.number,
+  OR_REG_WITH_REG:
+    (instruction.OR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.register,
+  OR_REGADDRESS_WITH_REG:
+    (instruction.OR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.regaddress,
+  OR_ADDRESS_WITH_REG:
+    (instruction.OR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.address,
+  OR_NUMBER_WITH_REG:
+    (instruction.OR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.number,
+  XOR_REG_WITH_REG:
+    (instruction.XOR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.register,
+  XOR_REGADDRESS_WITH_REG:
+    (instruction.XOR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.regaddress,
+  XOR_ADDRESS_WITH_REG:
+    (instruction.XOR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.address,
+  XOR_NUMBER_WITH_REG:
+    (instruction.XOR << 4) |
+    (addressingTypes.register << 2) |
+    addressingTypes.number,
+
+  ADD_NUMBER_TO_REG: 0b1100_10_00,
+  ADD_ADDRESS_TO_REG: 0b1100_10_01,
+  ADD_REG_TO_REG: 0b1100_10_10,
+  ADD_REGADDRESS_TO_REG: 0b1100_10_11,
+
+  SUB_NUMBER_FROM_REG: 0b1101_10_00,
+  SUB_ADDRESS_FROM_REG: 0b1101_10_01,
+  SUB_REG_FROM_REG: 0b1101_10_10,
+  SUB_REGADDRESS_FROM_REG: 0b1101_10_11,
 };
 
 export default OpCodes;

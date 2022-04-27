@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "predev": "yarn run build",
     "dev": "npm-run-all -p -l dev:web watch:assembler watch:common watch:emulator",
     "dev:web": "yarn workspace @computer-from-scratch/web run dev",
     "build": "yarn workspaces run build",

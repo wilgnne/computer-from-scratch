@@ -1,4 +1,4 @@
-import { Assembler, OpCodes } from "@computer-from-scratch/common";
+import { Assembler, OpCodes, Instruction } from "@computer-from-scratch/common";
 
 import { parseRegOrNumber } from "./parse";
 
@@ -90,7 +90,7 @@ export function asm(assembly: string): Assembler.ASM {
         }
 
         if (mnemonic) {
-          const instr = mnemonic.toUpperCase();
+          const instr = mnemonic.toUpperCase() as Instruction;
           // Add mapping instr pos to line number
           // Don't do it for DB as this is not a real instruction
           if (instr !== "DB") {
@@ -110,71 +110,41 @@ export function asm(assembly: string): Assembler.ASM {
               } else {
                 throw new Error("DB does not support this operand");
               }
-
               break;
             }
-            case "INC": {
-              const p1 = getValue(operand1);
-              checkNoExtraArg(instr, operand2);
-
-              if (p1.type === "register") {
-                const value = p1.value as number;
-                buffer.push(OpCodes.INC_REG, value);
-              } else {
-                throw new Error("INC does not support this operand");
-              }
-              break;
-            }
-            case "DEC": {
-              const p1 = getValue(operand1);
-              checkNoExtraArg(instr, operand2);
-
-              if (p1.type === "register") {
-                const value = p1.value as number;
-                buffer.push(OpCodes.DEC_REG, value);
-              } else {
-                throw new Error("DEC does not support this operand");
-              }
-              break;
-            }
-            case "CMP": {
-              const p1 = getValue(operand1);
-              const p2 = getValue(operand2);
-
-              if (p1.type === "register" && p2.type === "number") {
-                const value1 = p1.value as number;
-                const value2 = p2.value as number;
-                buffer.push(OpCodes.CMP_NUMBER_WITH_REG, value1, value2);
-              } else {
-                throw new Error("CMP does not support this operand");
-              }
-
+            case "HLT": {
+              checkNoExtraArg(instr, operand1);
+              buffer.push(OpCodes.HLT);
               break;
             }
             case "MOV": {
-              let opCode;
               const p1 = getValue(operand1);
               const p2 = getValue(operand2);
 
-              if (p1.type === "register" && p2.type === "register") {
-                opCode = OpCodes.MOV_REG_TO_REG;
-              } else if (p1.type === "register" && p2.type === "address") {
-                opCode = OpCodes.MOV_ADDRESS_TO_REG;
-              } else if (p1.type === "register" && p2.type === "regaddress") {
-                opCode = OpCodes.MOV_REGADDRESS_TO_REG;
-              } else if (p1.type === "address" && p2.type === "register") {
-                opCode = OpCodes.MOV_REG_TO_ADDRESS;
-              } else if (p1.type === "regaddress" && p2.type === "register") {
-                opCode = OpCodes.MOV_REG_TO_REGADDRESS;
-              } else if (p1.type === "register" && p2.type === "number") {
-                opCode = OpCodes.MOV_NUMBER_TO_REG;
-              } else if (p1.type === "address" && p2.type === "number") {
-                opCode = OpCodes.MOV_NUMBER_TO_ADDRESS;
-              } else if (p1.type === "regaddress" && p2.type === "number") {
-                opCode = OpCodes.MOV_NUMBER_TO_REGADDRESS;
-              } else {
+              const opCodeMap = {
+                address: {
+                  number: OpCodes.MOV_NUMBER_TO_ADDRESS,
+                  register: OpCodes.MOV_REG_TO_ADDRESS,
+                },
+                register: {
+                  number: OpCodes.MOV_NUMBER_TO_REG,
+                  address: OpCodes.MOV_ADDRESS_TO_REG,
+                  register: OpCodes.MOV_REG_TO_REG,
+                  regaddress: OpCodes.MOV_REGADDRESS_TO_REG,
+                },
+                regaddress: {
+                  number: OpCodes.MOV_NUMBER_TO_REGADDRESS,
+                  register: OpCodes.MOV_REG_TO_REGADDRESS,
+                },
+              };
+
+              const MOV_TYPE = opCodeMap[p1.type];
+              if (!MOV_TYPE)
                 throw new Error("MOV does not support this operands");
-              }
+
+              const opCode = MOV_TYPE[p2.type];
+              if (!opCode)
+                throw new Error("MOV does not support this operands");
 
               buffer.push(opCode, p1.value as number, p2.value as number);
               break;
@@ -213,45 +183,88 @@ export function asm(assembly: string): Assembler.ASM {
               buffer.push(opCode, p1.value as number);
               break;
             }
-
             case "JMP": {
-              let opCode: number;
               const p1 = getValue(operand1);
-              checkNoExtraArg("JMP", operand2);
+              const p2 = getValue(operand1);
 
-              if (p1.type === "register") {
-                opCode = OpCodes.JMP_REGADDRESS;
-              } else if (p1.type === "number") {
-                opCode = OpCodes.JMP_ADDRESS;
-              } else {
-                throw new Error("JMP does not support this operands");
+              const opCodeMap = {
+                number: {
+                  address: OpCodes.JMP_ADDRESS_FLAG_ADDRESS,
+                  regaddress: OpCodes.JMP_REGADDRESS_FLAG_REGADDRESS,
+                },
+                address: {
+                  address: OpCodes.JMP_ADDRESS_FLAG_ADDRESS,
+                  regaddress: OpCodes.JMP_REGADDRESS_FLAG_ADDRESS,
+                },
+                register: {
+                  address: OpCodes.JMP_ADDRESS_FLAG_REG,
+                  regaddress: OpCodes.JMP_REGADDRESS_FLAG_REG,
+                },
+                regaddress: {
+                  address: OpCodes.JMP_ADDRESS_FLAG_REGADDRESS,
+                  regaddress: OpCodes.JMP_REGADDRESS_FLAG_REGADDRESS,
+                },
+              };
+
+              const JMP_TYPES = opCodeMap[p1.type];
+              if (!JMP_TYPES) {
+                throw new Error(
+                  `JMP does not support this operand ${p1.type} as flag`
+                );
+              }
+
+              const opCode = JMP_TYPES[p2.type];
+              if (!opCode) {
+                throw new Error(
+                  `JMP does not support this operand ${p2.type} as destination`
+                );
               }
 
               buffer.push(opCode, p1.value as number);
               break;
             }
-            case "JNZ": {
-              let opCode: number;
+            case "ADD": {
               const p1 = getValue(operand1);
-              checkNoExtraArg(instr, operand2);
+              const p2 = getValue(operand2);
 
-              if (p1.type === "register") {
-                opCode = OpCodes.JNZ_REGADDRESS;
-              } else if (p1.type === "number") {
-                opCode = OpCodes.JNZ_ADDRESS;
-              } else {
-                throw new Error("JNZ does not support this operands");
-              }
+              if (p1.type !== "register")
+                throw new Error("ADD does not support this operands");
 
-              buffer.push(opCode, p1.value as number);
+              const ADD_TYPE = {
+                number: OpCodes.ADD_NUMBER_TO_REG,
+                address: OpCodes.ADD_ADDRESS_TO_REG,
+                register: OpCodes.ADD_REG_TO_REG,
+                regaddress: OpCodes.ADD_REGADDRESS_TO_REG,
+              };
+
+              const opCode = ADD_TYPE[p2.type];
+              if (!opCode)
+                throw new Error("ADD does not support this operands");
+
+              buffer.push(opCode, p1.value as number, p2.value as number);
               break;
             }
-            case "HLT": {
-              checkNoExtraArg(instr, operand1);
-              buffer.push(OpCodes.NONE);
+            case "SUB": {
+              const p1 = getValue(operand1);
+              const p2 = getValue(operand2);
+
+              if (p1.type !== "register")
+                throw new Error("SUB does not support this operands");
+
+              const SUB_TYPE = {
+                number: OpCodes.SUB_NUMBER_FROM_REG,
+                address: OpCodes.SUB_ADDRESS_FROM_REG,
+                register: OpCodes.SUB_REG_FROM_REG,
+                regaddress: OpCodes.SUB_REGADDRESS_FROM_REG,
+              };
+
+              const opCode = SUB_TYPE[p2.type];
+              if (!opCode)
+                throw new Error("SUB does not support this operands");
+
+              buffer.push(opCode, p1.value as number, p2.value as number);
               break;
             }
-
             default:
               throw new Error(`Invalid instruction: ${instr}`);
           }

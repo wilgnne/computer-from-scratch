@@ -1,5 +1,5 @@
 import * as Assembler from "./assembler";
 import * as Registers from "./registers";
-import OpCodes from "./opCodes";
+import OpCodes, { Instruction } from "./opCodes";
 
-export { Assembler, Registers, OpCodes };
+export { Assembler, Registers, OpCodes, Instruction };
