@@ -1,4 +1,4 @@
-import { OpCodes, Registers } from "@computer-from-scratch/common";
+import { OpCode, Registers } from "@computer-from-scratch/common";
 
 import { Memory } from "./memory";
 
@@ -70,6 +70,59 @@ export function createCpu(memory: Memory): Cpu {
     return value;
   }
 
+  function read(addressingType: OpCode.AddressingTypeEnum) {
+    const value = readFromIP();
+    switch (addressingType) {
+      case OpCode.AddressingTypeEnum.ADDRESS: {
+        const address = value;
+        return memory.read(address);
+      }
+      case OpCode.AddressingTypeEnum.NUMBER: {
+        return value;
+      }
+      case OpCode.AddressingTypeEnum.REGADDRESS: {
+        const reg = Registers.RegistersMap[value];
+        const address = readRegister(reg);
+        return memory.read(address);
+      }
+      case OpCode.AddressingTypeEnum.REGISTER: {
+        const reg = Registers.RegistersMap[value];
+        return readRegister(reg);
+      }
+      default: {
+        throw new Error("Unsupported addressing type");
+      }
+    }
+  }
+
+  function write(
+    target: number,
+    addressingType: OpCode.AddressingTypeEnum,
+    value: number
+  ) {
+    switch (addressingType) {
+      case OpCode.AddressingTypeEnum.ADDRESS: {
+        const address = target;
+        memory.write(address, value);
+        break;
+      }
+      case OpCode.AddressingTypeEnum.REGADDRESS: {
+        const reg = Registers.RegistersMap[target];
+        const address = readRegister(reg);
+        memory.write(address, value);
+        break;
+      }
+      case OpCode.AddressingTypeEnum.REGISTER: {
+        const reg = Registers.RegistersMap[target];
+        writeRegister(reg, value);
+        break;
+      }
+      default: {
+        throw new Error("Unsupported addressing type");
+      }
+    }
+  }
+
   function push(value: number) {
     registers.SP -= 1;
     memory.write(registers.SP, value);
@@ -82,104 +135,42 @@ export function createCpu(memory: Memory): Cpu {
   }
 
   function step() {
-    const instruction = readFromIP();
+    const opcode = readFromIP();
+    const { instruction, aAddressingType, bAddressingType } =
+      OpCode.decodeOpcode(opcode);
 
     switch (instruction) {
-      case OpCodes.CMP_NUMBER_WITH_REG: {
-        const register = Registers.RegistersMap[readFromIP()];
-        const value = readFromIP();
-
-        registers.Zero = readRegister(register) === value;
+      case OpCode.InstructionEnum.HLT: {
         break;
       }
-      case OpCodes.INC_REG: {
-        const register = Registers.RegistersMap[readFromIP()];
-        const result = readRegister(register) + 1;
-
-        if (result === 0) {
-          registers.Zero = true;
-        } else if (result > 255) {
-          registers.Carry = true;
-          writeRegister(register, result & 0xff);
-          break;
-        }
-        writeRegister(register, result);
-        break;
-      }
-      case OpCodes.DEC_REG: {
-        const register = Registers.RegistersMap[readFromIP()];
-        const result = readRegister(register) - 1;
-
-        if (result === 0) {
-          registers.Zero = true;
-        } else if (result < 0) {
-          registers.Carry = true;
-          writeRegister(register, result & 0xff);
-          break;
-        }
-
-        writeRegister(register, result);
-        break;
-      }
-      case OpCodes.JMP_ADDRESS: {
-        const address = readFromIP();
-        registers.IP = address;
-        break;
-      }
-      case OpCodes.JNZ_ADDRESS: {
-        const address = readFromIP();
-        if (!registers.Zero) {
-          registers.IP = address;
+      case OpCode.InstructionEnum.JMP: {
+        const flag = read(aAddressingType);
+        if (flag) {
+          registers.IP = read(bAddressingType);
         }
         break;
       }
-      case OpCodes.JZ_ADDRESS: {
-        const address = readFromIP();
-        if (registers.Zero) {
-          registers.IP = address;
-        }
-        break;
-      }
-      case OpCodes.PUSH_NUMBER: {
-        const value = readFromIP();
+      case OpCode.InstructionEnum.PUSH: {
+        const value = read(aAddressingType);
         push(value);
         break;
       }
-      case OpCodes.PUSH_ADDRESS: {
-        const address = readFromIP();
-        push(memory.read(address));
-        break;
-      }
-      case OpCodes.POP_REG: {
-        const reg = readFromIP();
+      case OpCode.InstructionEnum.POP: {
+        const reg = read(aAddressingType);
         const register = Registers.RegistersMap[reg];
         writeRegister(register, pop());
         break;
       }
-      case OpCodes.MOV_REG_TO_ADDRESS: {
+      case OpCode.InstructionEnum.MOV: {
+        const target = readFromIP();
+        const value = read(bAddressingType);
+
+        write(target, aAddressingType, value);
+
         const address = readFromIP();
         const reg = readFromIP();
         const register = Registers.RegistersMap[reg];
         memory.write(address, readRegister(register));
-        break;
-      }
-      case OpCodes.MOV_REG_TO_REGADDRESS: {
-        const to = readFromIP();
-        const from = readFromIP();
-        const address = readRegister(Registers.RegistersMap[to]);
-
-        memory.write(address, readRegister(Registers.RegistersMap[from]));
-        break;
-      }
-      case OpCodes.MOV_REGADDRESS_TO_REG: {
-        const to = readFromIP();
-        const from = readFromIP();
-        const address = readRegister(Registers.RegistersMap[from]);
-
-        writeRegister(Registers.RegistersMap[to], memory.read(address));
-        break;
-      }
-      case OpCodes.NONE: {
         break;
       }
       default:
