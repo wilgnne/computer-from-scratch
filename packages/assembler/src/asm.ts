@@ -1,6 +1,7 @@
-import { Assembler, OpCodes, Instruction } from "@computer-from-scratch/common";
+import { Assembler, OpCode, Utils } from "@computer-from-scratch/common";
 
 import { parseRegOrNumber } from "./parse";
+import SupportedOperands from "./supportedOperands";
 
 const regex =
   /^[\t ]*(?:([.A-Za-z]\w*)[:])?(?:[\t ]*([A-Za-z]{2,4})(?:[\t ]+(\[(\w+((\+|-)\d+)?)\]|".+?"|'.+?'|[.A-Za-z0-9]\w*)(?:[\t ]*[,][\t ]*(\[(\w+((\+|-)\d+)?)\]|".+?"|'.+?'|[.A-Za-z0-9]\w*))?)?)?/;
@@ -41,6 +42,19 @@ function checkNoExtraArg(instr: string, arg: string) {
   if (arg !== undefined) {
     throw new Error(`${instr}: too many arguments`);
   }
+}
+
+function checkSupportedArgs(
+  instr: OpCode.Mnemonic,
+  arg1: Assembler.OperandType,
+  arg2?: Assembler.OperandType
+) {
+  const p2SupportedOperands = SupportedOperands[instr][arg1];
+  if (!p2SupportedOperands)
+    throw new Error(`${instr} does not support the first argument ${arg1}`);
+
+  if (arg2 && !p2SupportedOperands.includes(arg2))
+    throw new Error(`${instr} does not support the second argument ${arg2}`);
 }
 
 export function asm(assembly: string): Assembler.ASM {
@@ -90,7 +104,7 @@ export function asm(assembly: string): Assembler.ASM {
         }
 
         if (mnemonic) {
-          const instr = mnemonic.toUpperCase() as Instruction;
+          const instr = mnemonic.toUpperCase() as OpCode.Mnemonic;
           // Add mapping instr pos to line number
           // Don't do it for DB as this is not a real instruction
           if (instr !== "DB") {
@@ -114,155 +128,47 @@ export function asm(assembly: string): Assembler.ASM {
             }
             case "HLT": {
               checkNoExtraArg(instr, operand1);
-              buffer.push(OpCodes.HLT);
+              const opcode = OpCode.createOpcode(OpCode.InstructionEnum.HLT);
+              buffer.push(opcode);
               break;
             }
-            case "MOV": {
-              const p1 = getValue(operand1);
-              const p2 = getValue(operand2);
-
-              const opCodeMap = {
-                address: {
-                  number: OpCodes.MOV_NUMBER_TO_ADDRESS,
-                  register: OpCodes.MOV_REG_TO_ADDRESS,
-                },
-                register: {
-                  number: OpCodes.MOV_NUMBER_TO_REG,
-                  address: OpCodes.MOV_ADDRESS_TO_REG,
-                  register: OpCodes.MOV_REG_TO_REG,
-                  regaddress: OpCodes.MOV_REGADDRESS_TO_REG,
-                },
-                regaddress: {
-                  number: OpCodes.MOV_NUMBER_TO_REGADDRESS,
-                  register: OpCodes.MOV_REG_TO_REGADDRESS,
-                },
-              };
-
-              const MOV_TYPE = opCodeMap[p1.type];
-              if (!MOV_TYPE)
-                throw new Error("MOV does not support this operands");
-
-              const opCode = MOV_TYPE[p2.type];
-              if (!opCode)
-                throw new Error("MOV does not support this operands");
-
-              buffer.push(opCode, p1.value as number, p2.value as number);
-              break;
-            }
-            case "PUSH": {
-              let opCode;
+            case "PUSH":
+            case "POP":
+            case "NOT": {
               const p1 = getValue(operand1);
               checkNoExtraArg(instr, operand2);
 
-              if (p1.type === "register") {
-                opCode = OpCodes.PUSH_REG;
-              } else if (p1.type === "regaddress") {
-                opCode = OpCodes.PUSH_REGADDRESS;
-              } else if (p1.type === "address") {
-                opCode = OpCodes.PUSH_ADDRESS;
-              } else if (p1.type === "number") {
-                opCode = OpCodes.PUSH_NUMBER;
-              } else {
-                throw new Error("PUSH does not support this operand");
-              }
+              checkSupportedArgs(instr, p1.type);
 
-              buffer.push(opCode, p1.value as number);
+              const opcode = OpCode.createOpcode(
+                OpCode.InstructionEnum[instr],
+                Utils.operandType2AddressingType(p1.type)
+              );
+
+              buffer.push(opcode, p1.value as number);
               break;
             }
-            case "POP": {
-              let opCode;
-              const p1 = getValue(operand1);
-              checkNoExtraArg(instr, operand2);
-
-              if (p1.type === "register") {
-                opCode = OpCodes.POP_REG;
-              } else {
-                throw new Error("POP does not support this operand");
-              }
-
-              buffer.push(opCode, p1.value as number);
-              break;
-            }
-            case "JMP": {
-              const p1 = getValue(operand1);
-              const p2 = getValue(operand1);
-
-              const opCodeMap = {
-                number: {
-                  address: OpCodes.JMP_ADDRESS_FLAG_ADDRESS,
-                  regaddress: OpCodes.JMP_REGADDRESS_FLAG_REGADDRESS,
-                },
-                address: {
-                  address: OpCodes.JMP_ADDRESS_FLAG_ADDRESS,
-                  regaddress: OpCodes.JMP_REGADDRESS_FLAG_ADDRESS,
-                },
-                register: {
-                  address: OpCodes.JMP_ADDRESS_FLAG_REG,
-                  regaddress: OpCodes.JMP_REGADDRESS_FLAG_REG,
-                },
-                regaddress: {
-                  address: OpCodes.JMP_ADDRESS_FLAG_REGADDRESS,
-                  regaddress: OpCodes.JMP_REGADDRESS_FLAG_REGADDRESS,
-                },
-              };
-
-              const JMP_TYPES = opCodeMap[p1.type];
-              if (!JMP_TYPES) {
-                throw new Error(
-                  `JMP does not support this operand ${p1.type} as flag`
-                );
-              }
-
-              const opCode = JMP_TYPES[p2.type];
-              if (!opCode) {
-                throw new Error(
-                  `JMP does not support this operand ${p2.type} as destination`
-                );
-              }
-
-              buffer.push(opCode, p1.value as number);
-              break;
-            }
-            case "ADD": {
-              const p1 = getValue(operand1);
-              const p2 = getValue(operand2);
-
-              if (p1.type !== "register")
-                throw new Error("ADD does not support this operands");
-
-              const ADD_TYPE = {
-                number: OpCodes.ADD_NUMBER_TO_REG,
-                address: OpCodes.ADD_ADDRESS_TO_REG,
-                register: OpCodes.ADD_REG_TO_REG,
-                regaddress: OpCodes.ADD_REGADDRESS_TO_REG,
-              };
-
-              const opCode = ADD_TYPE[p2.type];
-              if (!opCode)
-                throw new Error("ADD does not support this operands");
-
-              buffer.push(opCode, p1.value as number, p2.value as number);
-              break;
-            }
+            case "MOV":
+            case "JMP":
+            case "SHL":
+            case "SHR":
+            case "AND":
+            case "OR":
+            case "XOR":
+            case "ADD":
             case "SUB": {
               const p1 = getValue(operand1);
               const p2 = getValue(operand2);
 
-              if (p1.type !== "register")
-                throw new Error("SUB does not support this operands");
+              checkSupportedArgs(instr, p1.type, p2.type);
 
-              const SUB_TYPE = {
-                number: OpCodes.SUB_NUMBER_FROM_REG,
-                address: OpCodes.SUB_ADDRESS_FROM_REG,
-                register: OpCodes.SUB_REG_FROM_REG,
-                regaddress: OpCodes.SUB_REGADDRESS_FROM_REG,
-              };
+              const opcode = OpCode.createOpcode(
+                OpCode.InstructionEnum[instr],
+                Utils.operandType2AddressingType(p1.type),
+                Utils.operandType2AddressingType(p2.type)
+              );
 
-              const opCode = SUB_TYPE[p2.type];
-              if (!opCode)
-                throw new Error("SUB does not support this operands");
-
-              buffer.push(opCode, p1.value as number, p2.value as number);
+              buffer.push(opcode, p1.value as number, p2.value as number);
               break;
             }
             default:
