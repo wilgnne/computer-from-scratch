@@ -5,7 +5,7 @@ module.exports = {
     node: true,
     jest: true,
   },
-  extends: ["airbnb", "prettier"],
+  extends: ["airbnb", "prettier", "plugin:@typescript-eslint/recommended"],
   parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaFeatures: {
@@ -22,7 +22,10 @@ module.exports = {
     "import/prefer-default-export": "off",
     "no-use-before-define": "off",
     "no-bitwise": "off",
-    "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    "no-shadow": "off",
+    "@typescript-eslint/no-shadow": "error",
   },
   overrides: [
     {
