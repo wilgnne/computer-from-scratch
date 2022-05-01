@@ -12,9 +12,14 @@ const Display = dynamic(() => import("../components/Display"), { ssr: false });
 function App() {
   return (
     <Flex h="100%" padding={8} gap={6}>
-      <Box flex={1} borderWidth={1} borderRadius={6} padding={2}>
-        <Code />
-      </Box>
+      <Flex flex={1} direction="column" gap={6}>
+        <Box flex={1} borderWidth={1} borderRadius={6} padding={2}>
+          <Code />
+        </Box>
+        <Box borderWidth={1} borderRadius={6} padding={2}>
+          <Labels />
+        </Box>
+      </Flex>
 
       <Flex direction="column" gap={6}>
         <Box borderWidth={1} borderRadius={6} padding={2}>
@@ -25,9 +30,6 @@ function App() {
           <Divider marginTop={2} marginBottom={2} />
           <Registers />
           <Memory />
-        </Box>
-        <Box borderWidth={1} borderRadius={6} padding={2}>
-          <Labels />
         </Box>
       </Flex>
     </Flex>

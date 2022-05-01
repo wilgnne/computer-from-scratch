@@ -3,7 +3,7 @@ import {
   Divider,
   Heading,
   Table,
-  TableContainer,
+  Box,
   Tbody,
   Td,
   Th,
@@ -20,9 +20,9 @@ function Labels() {
     <>
       <Heading size="md">Labels</Heading>
       <Divider marginTop={2} marginBottom={2} />
-      <TableContainer>
+      <Box maxH={250} overflowY="auto">
         <Table variant="simple">
-          <Thead>
+          <Thead position="sticky" top={0} bg="white">
             <Tr>
               <Th>Name</Th>
               <Th>Adrres</Th>
@@ -41,7 +41,7 @@ function Labels() {
             ))}
           </Tbody>
         </Table>
-      </TableContainer>
+      </Box>
     </>
   );
 }
