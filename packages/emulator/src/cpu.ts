@@ -35,12 +35,18 @@ export function createCpu(memory: Memory): Cpu {
   function readRegister(register: keyof typeof Registers.RegistersMap): number {
     switch (register) {
       case "A":
+      case 0:
       case "B":
+      case 1:
       case "C":
+      case 2:
       case "D":
+      case 3:
       case "SP":
+      case 4:
         return registers[register];
       case "CD":
+      case 5:
         return (registers.C << 8) | registers.D;
       default:
         throw new Error(`Unknown register ${register}`);
@@ -53,10 +59,15 @@ export function createCpu(memory: Memory): Cpu {
   ): void {
     switch (register) {
       case "A":
+      case 0:
       case "B":
+      case 1:
       case "C":
+      case 2:
       case "D":
+      case 3:
       case "SP":
+      case 4:
         registers[register] = value;
         break;
       default:
@@ -90,7 +101,9 @@ export function createCpu(memory: Memory): Cpu {
         return readRegister(reg);
       }
       default: {
-        throw new Error("Unsupported addressing type");
+        throw new Error(
+          `Unsupported addressing type ${addressingType} on read ${value}`
+        );
       }
     }
   }
@@ -118,7 +131,9 @@ export function createCpu(memory: Memory): Cpu {
         break;
       }
       default: {
-        throw new Error("Unsupported addressing type");
+        throw new Error(
+          `Unsupported addressing type ${addressingType} on write in target: ${target}`
+        );
       }
     }
   }
@@ -141,6 +156,7 @@ export function createCpu(memory: Memory): Cpu {
 
     switch (instruction) {
       case OpCode.InstructionEnum.HLT: {
+        throw new Error("EOF");
         break;
       }
       case OpCode.InstructionEnum.JMP: {
@@ -167,10 +183,10 @@ export function createCpu(memory: Memory): Cpu {
 
         write(target, aAddressingType, value);
 
-        const address = readFromIP();
-        const reg = readFromIP();
-        const register = Registers.RegistersMap[reg];
-        memory.write(address, readRegister(register));
+        // const address = readFromIP();
+        // const reg = readFromIP();
+        // const register = Registers.RegistersMap[reg];
+        // memory.write(address, readRegister(register));
         break;
       }
       default:

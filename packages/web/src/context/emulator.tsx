@@ -68,6 +68,8 @@ function EmulatorContextProvider({ children }: { children: React.ReactNode }) {
         duration: 9000,
         isClosable: true,
       });
+
+      throw new Error(e);
     }
   }, [cpu]);
 

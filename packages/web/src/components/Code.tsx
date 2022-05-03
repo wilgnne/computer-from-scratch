@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Divider, Flex, Heading } from "@chakra-ui/react";
 import AceEditor from "react-ace";
 
@@ -13,6 +13,7 @@ function Code() {
   const { assemble, step } = useEmulator();
 
   const [inverval, setInverval] = useState<any>();
+  const [stop, setStop] = useState(false);
 
   function handleStart() {
     if (inverval) {
@@ -22,13 +23,23 @@ function Code() {
     }
 
     const intervalId = setInterval(() => {
-      step();
-      step();
-      step();
-    }, 1000 / 6);
+      try {
+        step();
+      } catch {
+        setStop(true);
+      }
+    }, 1000 / 2);
 
     setInverval(intervalId);
   }
+
+  useEffect(() => {
+    if (stop) {
+      clearInterval(inverval);
+      setInverval(undefined);
+      setStop(false);
+    }
+  }, [stop]);
 
   return (
     <Flex direction="column" height="100%">
