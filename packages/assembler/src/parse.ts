@@ -1,4 +1,4 @@
-import { Assembler } from "@computer-from-scratch/common";
+import { Assembler, Registers } from "@computer-from-scratch/common";
 
 /**
  * @description
@@ -39,28 +39,10 @@ export function parseNumber(input: string): number {
  * Allowed 8 bits register formats: A, B, C, D
  * Allowed 16 bits register formats: IP, SP, CD
  */
-export function parseRegister(input: string): number | undefined {
+export function parseRegister(input: string): number {
   const reg = input.toUpperCase();
 
-  if (reg === "A") {
-    return 0;
-  }
-  if (reg === "B") {
-    return 1;
-  }
-  if (reg === "C") {
-    return 2;
-  }
-  if (reg === "D") {
-    return 3;
-  }
-  if (reg === "SP") {
-    return 4;
-  }
-  if (reg === "CD") {
-    return 5;
-  }
-  return undefined;
+  return Registers.encodeRegister(reg);
 }
 
 export function parseOffsetAddressing(input: string): number | undefined {

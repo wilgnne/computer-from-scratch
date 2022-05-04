@@ -32,47 +32,37 @@ export function createCpu(memory: Memory): Cpu {
     Flag: false,
   };
 
-  function readRegister(register: keyof typeof Registers.RegistersMap): number {
-    switch (register) {
-      case "A":
-      case 0:
-      case "B":
-      case 1:
-      case "C":
-      case 2:
-      case "D":
-      case 3:
-      case "SP":
-      case 4:
-        return registers[register];
-      case "CD":
-      case 5:
+  function readRegister(registerCode: number): number {
+    const registerName = Registers.decodeRegister(registerCode);
+
+    if (registerName === "CD") {
         return (registers.C << 8) | registers.D;
-      default:
-        throw new Error(`Unknown register ${register}`);
     }
+    if (registerName === "F") {
+      return ((registers.Zero ? 1 : 0) << 1) | (registers.Carry ? 1 : 0);
   }
 
-  function writeRegister(
-    register: keyof typeof Registers.RegistersMap,
-    value: number
-  ): void {
-    switch (register) {
-      case "A":
-      case 0:
-      case "B":
-      case 1:
-      case "C":
-      case 2:
-      case "D":
-      case 3:
-      case "SP":
-      case 4:
-        registers[register] = value;
-        break;
-      default:
-        throw new Error(`Unknown register ${register}`);
+    const value = registers[registerName];
+
+    if (value === undefined) {
+      throw new Error(
+        `Unknown register ${registerCode}, decoded as ${registerName} on read`
+      );
     }
+
+    return value;
+  }
+
+  function writeRegister(registerCode: number, value: number): void {
+    const registerName = Registers.decodeRegister(registerCode);
+
+    if (!Object.keys(registers).includes(registerName)) {
+      throw new Error(
+        `Unknown register ${registerCode}, decoded as ${registerName} on write`
+      );
+    }
+
+    registers[registerName] = value;
   }
 
   function readFromIP() {
@@ -92,13 +82,11 @@ export function createCpu(memory: Memory): Cpu {
         return value;
       }
       case OpCode.AddressingTypeEnum.REGADDRESS: {
-        const reg = Registers.RegistersMap[value];
-        const address = readRegister(reg);
+        const address = readRegister(value);
         return memory.read(address);
       }
       case OpCode.AddressingTypeEnum.REGISTER: {
-        const reg = Registers.RegistersMap[value];
-        return readRegister(reg);
+        return readRegister(value);
       }
       default: {
         throw new Error(
