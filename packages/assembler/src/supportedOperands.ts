@@ -6,9 +6,9 @@ const SupportedOperands: Record<
 > = {
   HLT: {},
   MOV: {
-    address: ["number", "register"],
+    address: ["number", "address", "register", "regaddress"],
     register: ["number", "address", "register", "regaddress"],
-    regaddress: ["number", "register"],
+    regaddress: ["number", "address", "register", "regaddress"],
   },
   PUSH: {
     register: [],
