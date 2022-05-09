@@ -26,6 +26,7 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "no-shadow": "off",
     "@typescript-eslint/no-shadow": "error",
+    "react/require-default-props": "off",
   },
   overrides: [
     {

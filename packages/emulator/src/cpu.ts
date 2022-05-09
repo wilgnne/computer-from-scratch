@@ -9,6 +9,7 @@ export interface IRegisters {
   D: number;
   IP: number;
   SP: number;
+  BP: number;
   Zero: boolean;
   Carry: boolean;
   Flag: boolean;
@@ -27,6 +28,7 @@ export function createCpu(memory: Memory): Cpu {
     D: 0,
     IP: 0,
     SP: 255,
+    BP: 255,
     Zero: false,
     Carry: false,
     Flag: false,

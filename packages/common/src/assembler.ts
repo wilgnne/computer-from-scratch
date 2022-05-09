@@ -16,10 +16,10 @@ export interface Operand {
 }
 
 export interface Label {
-  address: number;
+  address?: number;
   value: {
-    number: number;
-    char: string;
+    number?: number;
+    char?: string;
   };
 }
 

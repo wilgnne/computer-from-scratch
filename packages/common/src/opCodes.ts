@@ -1,3 +1,5 @@
+export type MacroMnemonic = "CALL" | "RET";
+
 export type Mnemonic =
   | "DB"
   | "HLT"

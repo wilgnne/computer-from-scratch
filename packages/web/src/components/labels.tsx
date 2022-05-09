@@ -11,11 +11,13 @@ import {
   Tr,
 } from "@chakra-ui/react";
 
-import { useEmulator } from "../context/emulator";
+import { Assembler } from "@computer-from-scratch/common";
 
-function Labels() {
-  const { labels } = useEmulator();
+interface Props {
+  labels?: Record<string, Assembler.Label>;
+}
 
+function Labels({ labels = {} }: Props) {
   return (
     <>
       <Heading size="md">Labels</Heading>
@@ -30,12 +32,12 @@ function Labels() {
             </Tr>
           </Thead>
           <Tbody>
-            {Object.keys(labels || {}).map((name) => (
+            {Object.keys(labels).map((name) => (
               <Tr key={name}>
                 <Td>{name}</Td>
                 <Td>{labels[name].address}</Td>
                 <Td>{`${labels[name].value.number
-                  .toString(16)
+                  ?.toString(16)
                   .toUpperCase()}('${labels[name].value.char}')`}</Td>
               </Tr>
             ))}

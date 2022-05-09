@@ -1,61 +1,7 @@
 import { Assembler, OpCode, Utils } from "@computer-from-scratch/common";
+import { checkNoExtraArg, checkSupportedArgs, getValue } from "./parse";
 
-import { parseRegOrNumber } from "./parse";
-import SupportedOperands from "./supportedOperands";
-
-const regex =
-  /^[\t ]*(?:([.A-Za-z]\w*)[:])?(?:[\t ]*([A-Za-z]{2,4})(?:[\t ]+(\[(\w+((\+|-)\d+)?)\]|".+?"|'.+?'|[.A-Za-z0-9]\w*)(?:[\t ]*[,][\t ]*(\[(\w+((\+|-)\d+)?)\]|".+?"|'.+?'|[.A-Za-z0-9]\w*))?)?)?/;
-
-const RegexGroup = {
-  Label: 1,
-  Mnemonic: 2,
-  Operand1: 3,
-  Operand2: 7,
-};
-
-function getValue(input: string): Assembler.Operand {
-  switch (input.slice(0, 1)) {
-    case "[": {
-      const address = input.slice(1, input.length - 1);
-      return parseRegOrNumber(address, "regaddress", "address");
-    } // [number] or [register]
-    case '"': {
-      const text = input.slice(1, input.length - 1);
-      const chars = text.split("").map((char) => char.charCodeAt(0));
-
-      return { type: "numbers", value: chars };
-    } // "String"
-    case "'": {
-      const character = input.slice(1, input.length - 1);
-      if (character.length > 1) {
-        throw Error("Only one character is allowed. Use String instead");
-      }
-
-      return { type: "number", value: character.charCodeAt(0) };
-    } // 'C'
-    default: // REGISTER, NUMBER or LABEL
-      return parseRegOrNumber(input, "register", "number");
-  }
-}
-
-function checkNoExtraArg(instr: string, arg: string) {
-  if (arg !== undefined) {
-    throw new Error(`${instr}: too many arguments`);
-  }
-}
-
-function checkSupportedArgs(
-  instr: OpCode.Mnemonic,
-  arg1: Assembler.OperandType,
-  arg2?: Assembler.OperandType
-) {
-  const p2SupportedOperands = SupportedOperands[instr][arg1];
-  if (!p2SupportedOperands)
-    throw new Error(`${instr} does not support the first argument ${arg1}`);
-
-  if (arg2 && !p2SupportedOperands.includes(arg2))
-    throw new Error(`${instr} does not support the second argument ${arg2}`);
-}
+import { regex, RegexGroup } from "./regex";
 
 export function asm(assembly: string): Assembler.ASM {
   const buffer: (number | string)[] = [];

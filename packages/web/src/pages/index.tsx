@@ -11,7 +11,7 @@ const Display = dynamic(() => import("../components/Display"), { ssr: false });
 
 function App() {
   return (
-    <Flex h="100%" padding={8} gap={6}>
+    <Flex flex={1} h="100%" padding={8} gap={6}>
       <Flex flex={1} direction="column" gap={6}>
         <Box flex={1} borderWidth={1} borderRadius={6} padding={2}>
           <Code />

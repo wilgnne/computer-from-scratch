@@ -1,4 +1,5 @@
-import { Assembler, Registers } from "@computer-from-scratch/common";
+import { Assembler, Registers, OpCode } from "@computer-from-scratch/common";
+import SupportedOperands from "./supportedOperands";
 
 /**
  * @description
@@ -122,4 +123,48 @@ export function parseRegOrNumber(
   }
 
   return { type: typeNumber, value };
+}
+
+export function getValue(input: string): Assembler.Operand {
+  switch (input.slice(0, 1)) {
+    case "[": {
+      const address = input.slice(1, input.length - 1);
+      return parseRegOrNumber(address, "regaddress", "address");
+    } // [number] or [register]
+    case '"': {
+      const text = input.slice(1, input.length - 1);
+      const chars = text.split("").map((char) => char.charCodeAt(0));
+
+      return { type: "numbers", value: chars };
+    } // "String"
+    case "'": {
+      const character = input.slice(1, input.length - 1);
+      if (character.length > 1) {
+        throw Error("Only one character is allowed. Use String instead");
+      }
+
+      return { type: "number", value: character.charCodeAt(0) };
+    } // 'C'
+    default: // REGISTER, NUMBER or LABEL
+      return parseRegOrNumber(input, "register", "number");
+  }
+}
+
+export function checkNoExtraArg(instr: string, arg: string) {
+  if (arg !== undefined) {
+    throw new Error(`${instr}: too many arguments`);
+  }
+}
+
+export function checkSupportedArgs(
+  instr: OpCode.Mnemonic | OpCode.MacroMnemonic,
+  arg1: Assembler.OperandType,
+  arg2?: Assembler.OperandType
+) {
+  const p2SupportedOperands = SupportedOperands[instr][arg1];
+  if (!p2SupportedOperands)
+    throw new Error(`${instr} does not support the first argument ${arg1}`);
+
+  if (arg2 && !p2SupportedOperands.includes(arg2))
+    throw new Error(`${instr} does not support the second argument ${arg2}`);
 }

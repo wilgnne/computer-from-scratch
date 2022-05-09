@@ -1,9 +1,13 @@
 import { Assembler, OpCode } from "@computer-from-scratch/common";
 
 const SupportedOperands: Record<
-  Exclude<OpCode.Mnemonic, "DB">,
+  Exclude<OpCode.Mnemonic | OpCode.MacroMnemonic, "DB">,
   Partial<Record<Assembler.OperandType, Assembler.OperandType[]>>
 > = {
+  CALL: {
+    number: [],
+  },
+  RET: {},
   HLT: {},
   MOV: {
     address: ["number", "address", "register", "regaddress"],

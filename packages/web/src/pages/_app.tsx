@@ -1,14 +1,18 @@
 import React from "react";
 import { AppProps } from "next/app";
-import { ChakraProvider } from "@chakra-ui/react";
+import { ChakraProvider, Flex } from "@chakra-ui/react";
 
 import EmulatorContextProvider from "../context/emulator";
+import Navbar from "../components/Navbar";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <ChakraProvider>
       <EmulatorContextProvider>
-        <Component {...pageProps} />
+        <Navbar />
+        <Flex flex={1}>
+          <Component {...pageProps} />
+        </Flex>
       </EmulatorContextProvider>
     </ChakraProvider>
   );

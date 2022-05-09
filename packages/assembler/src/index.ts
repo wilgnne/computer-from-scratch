@@ -1,3 +1,4 @@
 import { asm } from "./asm";
+import { preprocessor } from "./preprocessor";
 
-export { asm };
+export { asm, preprocessor };
