@@ -42,7 +42,9 @@ function Registers() {
                     bg={CommonRegister.RegistersColors[name] || undefined}
                     borderRadius={4}
                   >
-                    {registers[name].toString(16).toUpperCase()}
+                    {registers[name]
+                      .toString(name === "F" ? 2 : 16)
+                      .toUpperCase()}
                   </Center>
                 </Td>
               ))}
