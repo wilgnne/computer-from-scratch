@@ -1,4 +1,5 @@
 import { OpCode, Registers } from "@computer-from-scratch/common";
+import { encodeRegister } from "@computer-from-scratch/common/dist/registers";
 
 import { Memory } from "./memory";
 
@@ -6,13 +7,13 @@ export interface IRegisters {
   A: number;
   B: number;
   C: number;
-  D: number;
   IP: number;
   SP: number;
-  Zero: boolean;
-  Carry: boolean;
-  Flag: boolean;
+  BP: number;
+  F: number;
 }
+
+const MAX_REGISTER_VALUE = 0xffff;
 
 export interface Cpu {
   step: () => { registers: IRegisters };
@@ -24,23 +25,14 @@ export function createCpu(memory: Memory): Cpu {
     A: 0,
     B: 0,
     C: 0,
-    D: 0,
     IP: 0,
-    SP: 255,
-    Zero: false,
-    Carry: false,
-    Flag: false,
+    SP: 0x3ff,
+    BP: 0x3ff,
+    F: 0,
   };
 
   function readRegister(registerCode: number): number {
     const registerName = Registers.decodeRegister(registerCode);
-
-    if (registerName === "CD") {
-      return (registers.C << 8) | registers.D;
-    }
-    if (registerName === "F") {
-      return ((registers.Zero ? 1 : 0) << 1) | (registers.Carry ? 1 : 0);
-    }
 
     const value = registers[registerName];
 
@@ -71,8 +63,9 @@ export function createCpu(memory: Memory): Cpu {
     return value;
   }
 
-  function read(addressingType: OpCode.AddressingTypeEnum) {
-    const value = readFromIP();
+  function read(addressingType: OpCode.AddressingTypeEnum, v?: number) {
+    const value = v === undefined ? readFromIP() : v;
+
     switch (addressingType) {
       case OpCode.AddressingTypeEnum.ADDRESS: {
         const address = value;
@@ -82,8 +75,12 @@ export function createCpu(memory: Memory): Cpu {
         return value;
       }
       case OpCode.AddressingTypeEnum.REGADDRESS: {
-        const address = readRegister(value);
-        return memory.read(address);
+        const registerCode = value & 0b111;
+        const offset = value >> 3;
+        const signedOffset =
+          offset >= 0b10000 ? -((~offset & 0b11111) + 1) : offset;
+        const address = readRegister(registerCode);
+        return memory.read(address + signedOffset);
       }
       case OpCode.AddressingTypeEnum.REGISTER: {
         return readRegister(value);
@@ -101,10 +98,13 @@ export function createCpu(memory: Memory): Cpu {
     addressingType: OpCode.AddressingTypeEnum,
     value: number
   ) {
-    const bounded = value & 0xff;
+    const bounded = value & MAX_REGISTER_VALUE;
 
-    registers.Carry = value > 0xff;
-    registers.Zero = bounded === 0;
+    const carry = value > MAX_REGISTER_VALUE ? 1 : 0;
+    const zero = bounded === 0 ? 1 : 0;
+    const negative = bounded & 0x8000 ? 1 : 0;
+
+    registers.F = (negative << 2) | (zero << 1) | carry;
 
     switch (addressingType) {
       case OpCode.AddressingTypeEnum.ADDRESS: {
@@ -113,8 +113,13 @@ export function createCpu(memory: Memory): Cpu {
         break;
       }
       case OpCode.AddressingTypeEnum.REGADDRESS: {
-        const address = readRegister(target);
-        memory.write(address, bounded);
+        const registerCode = target & 0b111;
+        const offset = target >> 3;
+        const signedOffset =
+          offset >= 0b10000 ? -((~offset & 0b11111) + 1) : offset;
+
+        const address = readRegister(registerCode);
+        memory.write(address + signedOffset, bounded);
         break;
       }
       case OpCode.AddressingTypeEnum.REGISTER: {
@@ -130,13 +135,13 @@ export function createCpu(memory: Memory): Cpu {
   }
 
   function push(value: number) {
-    registers.SP -= 1;
     memory.write(registers.SP, value);
+    registers.SP -= 1;
   }
 
   function pop() {
-    const value = memory.read(registers.SP);
     registers.SP += 1;
+    const value = memory.read(registers.SP);
     return value;
   }
 
@@ -158,19 +163,56 @@ export function createCpu(memory: Memory): Cpu {
       }
       case OpCode.InstructionEnum.PUSH: {
         const value = read(aAddressingType);
+        readFromIP(); // skip the next byte
         push(value);
         break;
       }
       case OpCode.InstructionEnum.POP: {
-        const reg = read(aAddressingType);
+        const reg = readFromIP();
+        readFromIP(); // skip the next byte
         writeRegister(reg, pop());
         break;
       }
       case OpCode.InstructionEnum.JMP: {
         const flag = read(aAddressingType);
+        const address = read(bAddressingType);
         if (flag) {
-          registers.IP = read(bAddressingType);
+          registers.IP = address;
         }
+        break;
+      }
+      case OpCode.InstructionEnum.CMP: {
+        const target = readFromIP();
+        const p1 = read(aAddressingType, target);
+        const p2 = read(bAddressingType);
+
+        const rawResult = p1 - p2;
+
+        const bounded = rawResult & MAX_REGISTER_VALUE;
+        const carry = rawResult > MAX_REGISTER_VALUE ? 1 : 0;
+        const zero = bounded === 0 ? 1 : 0;
+        const negative = bounded & 0x8000 ? 1 : 0;
+
+        registers.F = (negative << 2) | (zero << 1) | carry;
+
+        break;
+      }
+      case OpCode.InstructionEnum.CALL: {
+        const address = read(aAddressingType);
+        readFromIP(); // skip the next byte
+
+        push(registers.BP);
+        push(registers.IP);
+        writeRegister(encodeRegister("BP"), registers.SP);
+        registers.IP = address;
+
+        break;
+      }
+      case OpCode.InstructionEnum.RET: {
+        readFromIP(); // skip the next byte
+        readFromIP(); // skip the next byte
+        registers.IP = pop();
+        registers.BP = pop();
         break;
       }
       case OpCode.InstructionEnum.SHL: {
@@ -195,11 +237,42 @@ export function createCpu(memory: Memory): Cpu {
       }
       case OpCode.InstructionEnum.NOT: {
         const reg = readFromIP();
+        readFromIP(); // skip the next byte
         const value = readRegister(reg);
 
-        const inverted = ~value & 0xff;
+        const inverted = ~value & MAX_REGISTER_VALUE;
 
         write(reg, aAddressingType, inverted);
+        break;
+      }
+      case OpCode.InstructionEnum.AND: {
+        const target = readFromIP();
+        const p1 = read(aAddressingType, target);
+        const p2 = read(bAddressingType);
+
+        const rawResult = p1 & p2;
+
+        write(target, aAddressingType, rawResult);
+        break;
+      }
+      case OpCode.InstructionEnum.ADD: {
+        const target = readFromIP();
+        const p1 = read(aAddressingType, target);
+        const p2 = read(bAddressingType);
+
+        const rawResult = p1 + p2;
+
+        write(target, aAddressingType, rawResult);
+        break;
+      }
+      case OpCode.InstructionEnum.SUB: {
+        const target = readFromIP();
+        const p1 = read(aAddressingType, target);
+        const p2 = read(bAddressingType);
+
+        const rawResult = p1 - p2;
+
+        write(target, aAddressingType, rawResult);
         break;
       }
       default:

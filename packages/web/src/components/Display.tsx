@@ -6,10 +6,12 @@ import p5Types from "p5";
 import { useEmulator } from "../context/emulator";
 import { chunkArray } from "../utils/chunk";
 
+const VRAM_PAGE = 2;
+
 function Display() {
   const { memory } = useEmulator();
 
-  const vram = chunkArray<number>(memory.getMemory(), 256)[1];
+  const vram = chunkArray<number>(memory.getMemory(), 256)[VRAM_PAGE];
 
   const setup = (p5: p5Types, canvasParentRef: Element) => {
     p5.createCanvas(516, 260).parent(canvasParentRef);

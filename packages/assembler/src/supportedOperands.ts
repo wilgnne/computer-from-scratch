@@ -1,9 +1,13 @@
 import { Assembler, OpCode } from "@computer-from-scratch/common";
 
 const SupportedOperands: Record<
-  Exclude<OpCode.Mnemonic, "DB">,
+  Exclude<OpCode.Mnemonic | OpCode.MacroMnemonic, "DB">,
   Partial<Record<Assembler.OperandType, Assembler.OperandType[]>>
 > = {
+  CALL: {
+    number: [],
+  },
+  RET: {},
   HLT: {},
   MOV: {
     address: ["number", "address", "register", "regaddress"],
@@ -23,6 +27,19 @@ const SupportedOperands: Record<
     register: ["number", "address", "register", "regaddress"],
     regaddress: ["number", "address", "register", "regaddress"],
     number: ["number", "address", "register", "regaddress"],
+  },
+  JZ: {
+    register: ["number", "address", "register", "regaddress"],
+    regaddress: ["number", "address", "register", "regaddress"],
+    number: ["number", "address", "register", "regaddress"],
+  },
+  JLEZ: {
+    register: ["number", "address", "register", "regaddress"],
+    regaddress: ["number", "address", "register", "regaddress"],
+    number: ["number", "address", "register", "regaddress"],
+  },
+  CMP: {
+    register: ["register", "address", "number"],
   },
   SHL: {
     register: ["register", "address", "number"],

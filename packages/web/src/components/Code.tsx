@@ -1,19 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { Button, Divider, Flex, Heading } from "@chakra-ui/react";
-import AceEditor from "react-ace";
 
-import "ace-builds/src-noconflict/mode-sass";
-import "ace-builds/src-noconflict/theme-github";
-import "ace-builds/src-noconflict/ext-language_tools";
-
+import { IMarker } from "react-ace";
 import { useEmulator } from "../context/emulator";
+
+import Editor from "./Editor";
 
 function Code() {
   const [code, setCode] = useState("");
-  const { assemble, step } = useEmulator();
+  const { assemble, step, executedInstructions } = useEmulator();
 
   const [inverval, setInverval] = useState<any>();
   const [stop, setStop] = useState(false);
+
+  const IPMarker: IMarker = {
+    className: "IPMarker",
+    startCol: 0,
+    startRow: executedInstructions,
+    endCol: 100,
+    endRow: executedInstructions,
+    type: "fullLine",
+  };
 
   function handleStart() {
     if (inverval) {
@@ -45,37 +52,11 @@ function Code() {
     <Flex direction="column" height="100%">
       <Heading size="md">Code</Heading>
       <Divider marginTop={2} marginBottom={2} />
-      <AceEditor
-        style={{ flex: 1 }}
-        width="100%"
-        placeholder="Placeholder Text"
-        mode="sass"
-        theme="github"
-        name="blah2"
+      <Editor
+        value={code}
         onChange={(value) => setCode(value)}
-        fontSize={14}
-        showPrintMargin
-        showGutter
-        highlightActiveLine
-        value={code}
-        setOptions={{
-          enableBasicAutocompletion: false,
-          enableLiveAutocompletion: false,
-          enableSnippets: false,
-          showLineNumbers: true,
-          tabSize: 4,
-        }}
+        markers={[IPMarker]}
       />
-      {/* <Textarea
-        flex={1}
-        placeholder='Here is a sample placeholder'
-        size='sm'
-        resize='none'
-        height='auto'
-        overflow='auto'
-        value={code}
-        onChange={(e) => handleChange(e)}
-      /> */}
       <Flex marginTop={2} gap={2}>
         <Button variant="outline" onClick={() => assemble(code)}>
           Assemble
