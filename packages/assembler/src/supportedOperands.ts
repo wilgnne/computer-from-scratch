@@ -28,6 +28,19 @@ const SupportedOperands: Record<
     regaddress: ["number", "address", "register", "regaddress"],
     number: ["number", "address", "register", "regaddress"],
   },
+  JZ: {
+    register: ["number", "address", "register", "regaddress"],
+    regaddress: ["number", "address", "register", "regaddress"],
+    number: ["number", "address", "register", "regaddress"],
+  },
+  JLEZ: {
+    register: ["number", "address", "register", "regaddress"],
+    regaddress: ["number", "address", "register", "regaddress"],
+    number: ["number", "address", "register", "regaddress"],
+  },
+  CMP: {
+    register: ["register", "address", "number"],
+  },
   SHL: {
     register: ["register", "address", "number"],
   },
