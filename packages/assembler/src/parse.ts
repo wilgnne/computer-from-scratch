@@ -51,7 +51,11 @@ export function parseOffsetAddressing(input: string): number | undefined {
   let m = 0;
   let base = 0;
 
-  if (inputUpper[0] === "A") {
+  if (inputUpper.slice(0, 2) === "SP") {
+    base = 4;
+  } else if (inputUpper.slice(0, 2) === "BP") {
+    base = 5;
+  } else if (inputUpper[0] === "A") {
     base = 0;
   } else if (inputUpper[0] === "B") {
     base = 1;
@@ -59,14 +63,12 @@ export function parseOffsetAddressing(input: string): number | undefined {
     base = 2;
   } else if (inputUpper[0] === "D") {
     base = 3;
-  } else if (inputUpper.slice(0, 2) === "SP") {
-    base = 4;
   } else {
     return undefined;
   }
 
   let offsetStart = 1;
-  if (base === 4) {
+  if (base >= 4) {
     offsetStart = 2;
   }
 
@@ -118,8 +120,8 @@ export function parseRegOrNumber(
 
   if (Number.isNaN(value)) {
     throw new Error(`Not a ${typeNumber}: ${value}`);
-  } else if (value < 0 || value > 255) {
-    throw new Error(`${typeNumber} must have a value between 0-255`);
+  } else if (value < 0 || value > 0xffff) {
+    throw new Error(`${typeNumber} must have a value between 0x0-0xffff`);
   }
 
   return { type: typeNumber, value };
