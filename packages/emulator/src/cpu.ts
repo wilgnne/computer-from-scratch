@@ -265,6 +265,16 @@ export function createCpu(memory: Memory): Cpu {
         write(target, aAddressingType, rawResult);
         break;
       }
+      case OpCode.InstructionEnum.XOR: {
+        const target = readFromIP();
+        const p1 = read(aAddressingType, target);
+        const p2 = read(bAddressingType);
+
+        const rawResult = p1 ^ p2;
+
+        write(target, aAddressingType, rawResult);
+        break;
+      }
       case OpCode.InstructionEnum.ADD: {
         const target = readFromIP();
         const p1 = read(aAddressingType, target);
@@ -286,7 +296,9 @@ export function createCpu(memory: Memory): Cpu {
         break;
       }
       default:
-        throw new Error(`Unknown instruction: ${instruction.toString(16)}`);
+        throw new Error(
+          `Unknown instruction: ${(instruction as number).toString(16)}`
+        );
     }
 
     return {
