@@ -1,5 +1,5 @@
 import React from "react";
-import AceEditor from "react-ace";
+import AceEditor, { IMarker } from "react-ace";
 
 import "ace-builds/src-noconflict/mode-sass";
 import "ace-builds/src-noconflict/theme-github";
@@ -9,9 +9,10 @@ interface Props {
   value: string;
   onChange?: (value: string) => void;
   readOnly?: boolean;
+  markers?: IMarker[];
 }
 
-function Editor({ onChange, value, readOnly }: Props) {
+function Editor({ onChange, value, readOnly, markers }: Props) {
   return (
     <AceEditor
       style={{ flex: 1 }}
@@ -34,6 +35,7 @@ function Editor({ onChange, value, readOnly }: Props) {
         tabSize: 4,
       }}
       readOnly={readOnly}
+      markers={markers}
     />
   );
 }
