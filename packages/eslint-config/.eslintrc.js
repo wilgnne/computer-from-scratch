@@ -23,9 +23,7 @@ module.exports = {
     "no-use-before-define": "off",
     "no-bitwise": "off",
     "no-unused-vars": "off",
-    "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "no-shadow": "off",
-    "@typescript-eslint/no-shadow": "error",
     "react/require-default-props": "off",
   },
   overrides: [
@@ -39,6 +37,17 @@ module.exports = {
       rules: {
         "react/jsx-filename-extension": [1, { extensions: [".tsx"] }],
         "@typescript-eslint/no-use-before-define": ["error"],
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          { argsIgnorePattern: "^_" },
+        ],
+        "@typescript-eslint/no-shadow": "error",
+      },
+    },
+    {
+      files: ["*.js"],
+      rules: {
+        "@typescript-eslint/no-var-requires": "off",
       },
     },
   ],
