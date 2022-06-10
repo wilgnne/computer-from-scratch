@@ -21,7 +21,7 @@ export function preprocessor(source: string): PreASM {
       upperLabel === "A" ||
       upperLabel === "B" ||
       upperLabel === "C" ||
-      upperLabel === "D"
+      upperLabel === "F"
     ) {
       throw new Error(`Label contains keyword: ${upperLabel}`);
     }
@@ -51,34 +51,30 @@ export function preprocessor(source: string): PreASM {
           const instr = mnemonic.toUpperCase() as OpCode.MacroMnemonic;
 
           switch (instr) {
-            case "CALL": {
+            case "JZ": {
               const p1 = getValue(operand1);
               checkNoExtraArg(instr, operand2);
 
               checkSupportedArgs(instr, p1.type);
 
-              buffer.push("    PUSH A");
-              buffer.push("    PUSH B");
-              buffer.push("    PUSH BP");
-              buffer.push("    PUSH IP");
-              buffer.push(`    JMP 0x1, ${p1.value}`);
-              buffer.push("    POP B");
-              buffer.push("    POP A");
+              buffer.push("    MOV C, F");
+              buffer.push("    AND C, 10b");
+              buffer.push(`    JMP C, ${p1.value}`);
 
               break;
             }
+            case "JLEZ": {
+              const p1 = getValue(operand1);
+              checkNoExtraArg(instr, operand2);
 
-            case "RET": {
-              checkNoExtraArg(instr, operand1);
+              checkSupportedArgs(instr, p1.type);
 
-              buffer.push("    POP A    ; POP IP to A");
-              buffer.push("    POP BP");
-              buffer.push("    ADD A, 0x3");
-              buffer.push("    JMP 0x1, A");
+              buffer.push("    MOV C, F");
+              buffer.push("    AND C, 110b");
+              buffer.push(`    JMP C, ${p1.value}`);
 
               break;
             }
-
             default: {
               buffer.push(
                 `    ${instr} ${[operand1, operand2].filter(Boolean).join(",")}`
