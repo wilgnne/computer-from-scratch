@@ -255,6 +255,16 @@ export function createCpu(memory: Memory): Cpu {
         write(target, aAddressingType, rawResult);
         break;
       }
+      case OpCode.InstructionEnum.OR: {
+        const target = readFromIP();
+        const p1 = read(aAddressingType, target);
+        const p2 = read(bAddressingType);
+
+        const rawResult = p1 | p2;
+
+        write(target, aAddressingType, rawResult);
+        break;
+      }
       case OpCode.InstructionEnum.ADD: {
         const target = readFromIP();
         const p1 = read(aAddressingType, target);
