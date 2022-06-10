@@ -1,16 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { Button, Divider, Flex, Heading } from "@chakra-ui/react";
 
+import { IMarker } from "react-ace";
 import { useEmulator } from "../context/emulator";
 
 import Editor from "./Editor";
 
 function Code() {
   const [code, setCode] = useState("");
-  const { assemble, step } = useEmulator();
+  const { assemble, step, executedInstructions } = useEmulator();
 
   const [inverval, setInverval] = useState<any>();
   const [stop, setStop] = useState(false);
+
+  const IPMarker: IMarker = {
+    className: "IPMarker",
+    startCol: 0,
+    startRow: executedInstructions,
+    endCol: 100,
+    endRow: executedInstructions,
+    type: "fullLine",
+  };
 
   function handleStart() {
     if (inverval) {
@@ -42,7 +52,11 @@ function Code() {
     <Flex direction="column" height="100%">
       <Heading size="md">Code</Heading>
       <Divider marginTop={2} marginBottom={2} />
-      <Editor value={code} onChange={(value) => setCode(value)} />
+      <Editor
+        value={code}
+        onChange={(value) => setCode(value)}
+        markers={[IPMarker]}
+      />
       <Flex marginTop={2} gap={2}>
         <Button variant="outline" onClick={() => assemble(code)}>
           Assemble
