@@ -1,46 +1,13 @@
-import React, { useMemo } from "react";
-import { Box, Link, Heading, HStack } from "@chakra-ui/react";
-import NextLink from "next/link";
-import { useRouter } from "next/router";
+import React from "react";
+import { Box, Heading, HStack, Button } from "@chakra-ui/react";
 
-interface NavLinkProps {
-  href: string;
-  children: React.ReactNode;
-}
+import { RouteNames, useNavigator } from "../context/navigation";
 
-function NavLink({ children, href }: NavLinkProps) {
-  const router = useRouter();
-
-  const isCurrent = useMemo(
-    () => router.asPath === href,
-    [href, router.asPath]
-  );
-
-  return (
-    <NextLink href={href}>
-      <Link
-        px={2}
-        py={1}
-        rounded="md"
-        bg={isCurrent && "blue.700"}
-        _hover={{
-          textDecoration: "none",
-          bg: "blue.800",
-        }}
-        href={href}
-      >
-        {children}
-      </Link>
-    </NextLink>
-  );
-}
-
-const Links = [
-  { name: "Emulator", href: "/" },
-  { name: "Assembler", href: "/assembler" },
-];
+const Links: RouteNames[] = ["Assembler", "Emulator"];
 
 function Navbar() {
+  const { navigate } = useNavigator();
+
   return (
     <Box display="flex" justifyContent="space-around" bg="blue.600" p={2}>
       <Heading color="white" size="lg">
@@ -49,10 +16,17 @@ function Navbar() {
       <Box textColor="white" alignSelf="center">
         <HStack spacing={8} alignItems="center">
           <HStack as="nav" spacing={4} display={{ base: "none", md: "flex" }}>
-            {Links.map(({ name, href }) => (
-              <NavLink key={name} href={href}>
+            {Links.map((name) => (
+              <Button
+                key={name}
+                size="md"
+                colorScheme="blue"
+                textColor="white"
+                variant="link"
+                onClick={() => navigate(name)}
+              >
                 {name}
-              </NavLink>
+              </Button>
             ))}
           </HStack>
         </HStack>

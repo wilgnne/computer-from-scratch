@@ -6,6 +6,7 @@
     "predev": "yarn run build",
     "dev": "npm-run-all -p -l dev:web watch:assembler watch:common watch:emulator",
     "dev:web": "yarn workspace @computer-from-scratch/web run dev",
+    "prebuild": "yarn workspace @computer-from-scratch/common run build",
     "build": "yarn workspaces run build",
     "watch": "npm-run-all -p -l watch:assembler watch:common watch:emulator",
     "watch:assembler": "yarn workspace @computer-from-scratch/assembler run watch",

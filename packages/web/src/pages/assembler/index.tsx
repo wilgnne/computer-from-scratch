@@ -16,6 +16,7 @@ import { Assembler } from "@computer-from-scratch/common";
 import Labels from "../../components/labels";
 import HexGrid from "../../components/HexGrid";
 import { chunkArray } from "../../utils/chunk";
+import { useEmulator } from "../../context/emulator";
 
 const AssemblyEditor = dynamic(
   () => import("../../components/AssemblyEditor"),
@@ -27,6 +28,8 @@ const PreProcessedAssemblyViwer = dynamic(
 );
 
 function AssemblerPage() {
+  const { assemble: build } = useEmulator();
+
   const [preprocessedCode, setPreprocessedCode] = useState("");
   const [preprocessedCodeLabels, setPreprocessedCodeLabels] =
     useState<Record<string, Assembler.Label>>();
@@ -48,6 +51,8 @@ function AssemblerPage() {
       setPreprocessedCode(preprocessed.code);
       setProgram(machineCode);
       setLabels(programLabels);
+
+      build(preprocessed.code);
     } catch (e) {
       toast({
         title: "Compile Error",

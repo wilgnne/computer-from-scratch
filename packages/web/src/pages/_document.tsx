@@ -6,6 +6,7 @@ export default function Document() {
     <Html style={{ height: "100%" }}>
       <style>
         {"#__next { display: flex; flex-direction: column; height: 100% }"}
+        {".IPMarker { position: absolute; background-color: #FFFF00; }"}
       </style>
       <Head />
       <body style={{ height: "100%" }}>
