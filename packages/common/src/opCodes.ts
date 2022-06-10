@@ -1,4 +1,4 @@
-export type MacroMnemonic = "CALL" | "RET";
+export type MacroMnemonic = "JZ" | "JLEZ";
 
 export type Mnemonic =
   | "DB"
@@ -8,6 +8,9 @@ export type Mnemonic =
   | "PUSH"
   | "POP"
   | "JMP"
+  | "CMP"
+  | "CALL"
+  | "RET"
   | "SHL"
   | "SHR"
   | "NOT"
@@ -18,20 +21,22 @@ export type Mnemonic =
   | "SUB";
 
 export enum InstructionEnum {
-  HLT = 0b0000,
-  MOV = 0b0001,
-  PUSH = 0b0010,
-  POP = 0b0011,
-  JMP = 0b0100,
-
-  SHL = 0b0110,
-  SHR = 0b0111,
-  NOT = 0b1000,
-  AND = 0b1001,
-  OR = 0b1010,
-  XOR = 0b1011,
-  ADD = 0b1100,
-  SUB = 0b1101,
+  HLT = 0x0,
+  MOV = 0x1,
+  PUSH = 0x2,
+  POP = 0x3,
+  JMP = 0x4,
+  CMP = 0x5,
+  CALL = 0x6,
+  RET = 0x7,
+  SHL = 0x8,
+  SHR = 0x9,
+  NOT = 0xa,
+  AND = 0xb,
+  OR = 0xc,
+  XOR = 0xd,
+  ADD = 0xe,
+  SUB = 0xf,
 }
 
 export enum AddressingTypeEnum {
