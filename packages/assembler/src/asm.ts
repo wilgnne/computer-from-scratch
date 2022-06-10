@@ -72,14 +72,16 @@ export function asm(assembly: string): Assembler.ASM {
               }
               break;
             }
-            case "HLT": {
+            case "HLT":
+            case "RET": {
               checkNoExtraArg(instr, operand1);
-              const opcode = OpCode.createOpcode(OpCode.InstructionEnum.HLT);
-              buffer.push(opcode);
+              const opcode = OpCode.createOpcode(OpCode.InstructionEnum[instr]);
+              buffer.push(opcode, 0, 0);
               break;
             }
             case "PUSH":
             case "POP":
+            case "CALL":
             case "NOT": {
               const p1 = getValue(operand1);
               checkNoExtraArg(instr, operand2);
@@ -91,11 +93,12 @@ export function asm(assembly: string): Assembler.ASM {
                 Utils.operandType2AddressingType(p1.type)
               );
 
-              buffer.push(opcode, p1.value as number);
+              buffer.push(opcode, p1.value as number, 0);
               break;
             }
             case "MOV":
             case "JMP":
+            case "CMP":
             case "SHL":
             case "SHR":
             case "AND":
