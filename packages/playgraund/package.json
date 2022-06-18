@@ -1,0 +1,18 @@
+{
+  "name": "@computer-from-scratch/playgraund",
+  "version": "1.0.0",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "ts-node ./src/index.ts"
+  },
+  "dependencies": {
+    "@computer-from-scratch/assembler": "*",
+    "@computer-from-scratch/common": "*",
+    "@computer-from-scratch/emulator": "*",
+    "@computer-from-scratch/wasm-emulator": "*"
+  },
+  "devDependencies": {
+    "ts-node": "^10.8.1"
+  }
+}
