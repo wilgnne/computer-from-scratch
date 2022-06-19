@@ -4,7 +4,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "start": "ts-node ./src/index.ts"
+    "start": "ts-node ./src/index.ts",
+    "build": "echo Build Playgraund"
   },
   "dependencies": {
     "@computer-from-scratch/assembler": "*",

@@ -8,6 +8,7 @@
     "dev:web": "yarn workspace @computer-from-scratch/web run dev",
     "prebuild": "yarn workspace @computer-from-scratch/common run build",
     "build": "yarn workspaces run build",
+    "deploy": "yarn run build && yarn workspace @computer-from-scratch/web run deploy",
     "watch": "npm-run-all -p -l watch:assembler watch:common watch:emulator",
     "watch:assembler": "yarn workspace @computer-from-scratch/assembler run watch",
     "watch:common": "yarn workspace @computer-from-scratch/common run watch",
