@@ -7,8 +7,8 @@ import React, {
 } from "react";
 import { Flex } from "@chakra-ui/react";
 
-import Emulator from "../pages/Emulator";
-import Assembler from "../pages/assembler";
+import Emulator from "../screens/Emulator";
+import Assembler from "../screens/assembler";
 import EmulatorContextProvider from "./emulator";
 import Navbar from "../components/Navbar";
 
@@ -18,6 +18,8 @@ const Routes = {
 };
 
 export type RouteNames = keyof typeof Routes;
+
+const Links: RouteNames[] = ["Assembler", "Emulator"];
 
 interface INavigatorContext {
   navigate: (path: keyof typeof Routes) => void;
@@ -41,7 +43,7 @@ function NavigatorProvider() {
   return (
     <NavigatorContext.Provider value={value}>
       <EmulatorContextProvider>
-        <Navbar />
+        <Navbar Links={Links} useNavigator={() => value} />
         {Object.keys(Routes).map((name) => {
           const Page = Routes[name];
           return (

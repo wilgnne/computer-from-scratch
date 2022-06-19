@@ -1,11 +1,12 @@
 import React from "react";
 import { Box, Heading, HStack, Button } from "@chakra-ui/react";
 
-import { RouteNames, useNavigator } from "../context/navigation";
+interface Props {
+  Links: string[];
+  useNavigator: () => { navigate: (name: string) => void };
+}
 
-const Links: RouteNames[] = ["Assembler", "Emulator"];
-
-function Navbar() {
+function Navbar({ Links, useNavigator }: Props) {
   const { navigate } = useNavigator();
 
   return (
